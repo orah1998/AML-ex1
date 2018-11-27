@@ -1,5 +1,5 @@
 import numpy as np
-
+import random
 
 #getting data:
 from sklearn.datasets import fetch_mldata
@@ -76,13 +76,14 @@ def hammingPred(svms,testing_x,testing_y,matrix):
 
 
 
+
 def hammingDecoding(vec,matrix):
     min=np.inf
     ans=0.0
     for r,line in enumerate(matrix):
         sum=0
         for s,pred in enumerate(vec):
-            sum+=(1-sign(matrix[r][s]*pred))/2 + 200
+            sum+=(1-sign(matrix[r][s]*pred))/2
 
         if(min>sum):
             min=sum
@@ -95,6 +96,8 @@ def hammingDecoding(vec,matrix):
 
 
 
+
+#@@@@@@@@@@@@@@@@@@@@@@@@ CHANGING FUNCTIONS @@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
 
@@ -130,19 +133,22 @@ def changeAllPairs(label1,label2,my_y,my_x):
 
 
 
-def changeAllPairs2(label1,label2,my_y,my_x):
+#function for random matrix
+#ci is -1 0 or 1 according to random matrix
+def changeRandom(my_y, c0, c1, c2, c3):
     tempY=my_y.copy()
-    tempX=my_x.copy()
     for i,tag in enumerate(tempY):
-        if(tag==label1):
-            tempY[i]=1
-        elif(tag==label2):
-            tempY[i]=-1
-        else:
-            tempX=np.delete(tempX,i)
-            tempY=np.delete(tempY,i)
+        if(tag==0.0):
+            tempY[i]=c0
+        if(tag==1.0):
+            tempY[i]=c1
+        if(tag==2.0):
+            tempY[i]=c2
+        if(tag==3.0):
+            tempY[i]=c3
 
-    return tempX,tempY
+    return tempY
+
 
 
 
@@ -208,7 +214,7 @@ testing_x=np.loadtxt("x_test.txt")
 
 
 #remove this for one vs all:
-'''
+
 #creating matrixes for the diffrent models
 oneVsAllMatrix=[[1,-1,-1,-1],[-1,1,-1,-1],[-1,-1,1,-1],[-1,-1,-1,1]]
 
@@ -230,7 +236,12 @@ for i in range(len(svms)):
 
 hammingPred(svms,testing_x,testing_y,oneVsAllMatrix)
 lossPred(svms,testing_x,testing_y,oneVsAllMatrix)
-'''
+
+
+
+
+
+
 
 
 #creating svms All Pairs
@@ -272,12 +283,44 @@ lossPred(svms,testing_x,testing_y,allPairsMatrix)
 
 
 
-        
 
 
 
 
 
+#Random Matrix:
+matrix=[]
+xlen=20 #random.randint(4,20)
+
+
+#class 0
+indexX = [random.randint(-1,1) for i in range(xlen)]
+matrix.append(indexX)
+
+#class 1
+indexX = [random.randint(-1,1) for i in range(xlen)]
+matrix.append(indexX)
+
+#class 2
+indexX = [random.randint(-1,1) for i in range(xlen)]
+matrix.append(indexX)
+
+#class 3
+indexX = [random.randint(-1,1) for i in range(xlen)]
+matrix.append(indexX)
 
 
 
+svms=[]
+for i in range(xlen):
+    svms.append(SVM(fi,myLamda,epoches))
+    labels=[]
+    for line in range(4):
+        labels.append(matrix[line][i])
+
+    svms[i].execute(x,changeRandom(y,labels[0],labels[1],labels[2],labels[3]))
+
+
+
+hammingPred(svms,testing_x,testing_y,matrix)
+lossPred(svms,testing_x,testing_y,matrix)
